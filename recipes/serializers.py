@@ -1,4 +1,11 @@
 from rest_framework import serializers
+from .models import Category
+from tag.models import Tag
+
+class TagSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+    slug = serializers.SlugField()
 
 class RecipeSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -7,3 +14,16 @@ class RecipeSerializer(serializers.Serializer):
     preparation = serializers.SerializerMethodField()
     def get_preparation(self,recipe):
         return f'{recipe.preparation_time} {recipe.preparation_time_unit}'
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all()
+    )
+
+    category_name = serializers.StringRelatedField(
+        source='category'
+    )
+    author = serializers.StringRelatedField()
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
+    tag_object = TagSerializer(many=True,source='tags')

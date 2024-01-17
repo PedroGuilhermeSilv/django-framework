@@ -36,6 +36,13 @@ def recipe_api_detail(request,pk):
 serializer.py
 ```
 from rest_framework import serializers
+from .models import Category
+from tag.models import Tag
+
+class TagSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+    slug = serializers.SlugField()
 
 class RecipeSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -44,11 +51,31 @@ class RecipeSerializer(serializers.Serializer):
     preparation = serializers.SerializerMethodField()
     def get_preparation(self,recipe):
         return f'{recipe.preparation_time} {recipe.preparation_time_unit}'
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all()
+    )
+
+    category_name = serializers.StringRelatedField(
+        source='category'
+    )
+    author = serializers.StringRelatedField()
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
+    tag_object = TagSerializer(many=True,source='tags')
 ```
 
 - É possível juntar dois atributos e retornar no http response:
 1. Pimeiro, adicione o atributo na classe serializer com o método “SerializerMethodField()”.
 2. Depois adicione uma função chamada get_nomedoatributo(): e retorne os atributos desejado.
 
+- Para serializar campos que possuem relacionamento como `category` que é uma ForeingKey,, podemos agir de duas formas:
+1. Usando `PrimaryKeyRelatedField` passamos uma queryset com a busca que ele deve fazer no banco e nos retornará o id dessa categoria.
+2. Usando `StringRelatedField` e adicionado no model a class __str__ , informamos qual é o atributo que ele tem o relacionamento em `sorce` e com isso ele irá nos retornará o atributo retornado na class __str__.
+
+- Para retornar os campos de um relacionamento many to many também temos duas aslternativas:
+1. Usando `PrimaryKeyRelatedField` adicionamos a o argumento "many=True" informando que passaremos mais de um objeto.
+2. Criando a classe serializadora do atributo podemos instancialá para retornar todos os objetos desejados.
 
 
