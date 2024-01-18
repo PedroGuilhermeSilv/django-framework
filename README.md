@@ -64,18 +64,33 @@ class RecipeSerializer(serializers.Serializer):
         many=True
     )
     tag_object = TagSerializer(many=True,source='tags')
+    tag_links =serializers.HyperlinkedRelatedField(
+        many=True,
+        source='tags',
+        queryset=Tag.objects.all(),
+        view_name='recipes:recipe_api_v2_tag'
+        )
+
 ```
+### PrimaryKeyRelatedField
+- Para serializar campos que possuem relacionamento como `category` que é uma ForeignKey, podemos utilizar o PrimaryKeyRelatedField:
+    1. Usando `PrimaryKeyRelatedField` passamos uma queryset com a busca que ele deve fazer no banco e nos retornará o id dessa categoria e se for um relacionamento many to many devemos informar que `many=True`.
 
-- É possível juntar dois atributos e retornar no http response:
-1. Pimeiro, adicione o atributo na classe serializer com o método “SerializerMethodField()”.
-2. Depois adicione uma função chamada get_nomedoatributo(): e retorne os atributos desejado.
+### SerializerMethodField()
+- Podemos também fazer o response com a junção de dois atributos.
+    1. Pimeiro, adicione o atributo na classe serializer com o método “SerializerMethodField()”.
+    2. Depois adicione uma função chamada get_nomedoatributo().
+    3. Nesta função retorne os valores desejados.
 
-- Para serializar campos que possuem relacionamento como `category` que é uma ForeingKey,, podemos agir de duas formas:
-1. Usando `PrimaryKeyRelatedField` passamos uma queryset com a busca que ele deve fazer no banco e nos retornará o id dessa categoria.
-2. Usando `StringRelatedField` e adicionado no model a class __str__ , informamos qual é o atributo que ele tem o relacionamento em `sorce` e com isso ele irá nos retornará o atributo retornado na class __str__.
+### StringRelatedField()
+- Ao utilizar StringRelatedField e implementar a classe __str__ no modelo, especificamos o atributo relacionado no source. Isso resultará no retorno do atributo configurado na classe __str__.
 
-- Para retornar os campos de um relacionamento many to many também temos duas aslternativas:
-1. Usando `PrimaryKeyRelatedField` adicionamos a o argumento "many=True" informando que passaremos mais de um objeto.
-2. Criando a classe serializadora do atributo podemos instancialá para retornar todos os objetos desejados.
+    1. Ao criar a classe serializadora para o atributo, podemos instanciá-la para obter todos os objetos desejados.
 
-
+### HyperlinkedRelatedField
+- Este campo simplifica a representação de relacionamentos ao criar hiperlinks automáticos para os objetos relacionados.
+    1. Crie o atributo serializer com o método `HyperlinkedRelatedField` e passe os seguintes parâmetros:
+    - many: Se será mais de um objeto.
+    - source: o atributo referente ao model.
+    - queryset: como deve buscar no banco.
+    - view_name: a rota que ele deve se referenciar.
