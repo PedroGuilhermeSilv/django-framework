@@ -94,3 +94,17 @@ class RecipeSerializer(serializers.Serializer):
     - source: o atributo referente ao model.
     - queryset: como deve buscar no banco.
     - view_name: a rota que ele deve se referenciar.
+
+### ModelSerializer
+- Em vez de serializar atributo por atributo podemos utilizar o MoldeSerializer para fazer isso de maneira "automática".
+1. Cria a classe serializadora passando como parâmetro `serializer.ModelSerializer`.
+2. Detro desta classe crie uma subclasse Meta.
+3. Informe o model de referência e os fields desejados:
+```
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id','name','slug']
+```
+### Decoretors api_view
+- No django rest podemos usar um decoretor em nossa view para referênciar essa rota class view. Podemos passar alguns parâmetros como  `@api_view(http_method_names=['GET'])` informando os métodos https suportados.

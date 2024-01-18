@@ -14,11 +14,11 @@ def recipe_api_list(request):
    serializer = RecipeSerializer(instance=recipes,many=True,context={'request': request})
    return Response(serializer.data)
 
-@api_view()
+@api_view(http_method_names=['GET'])
 def recipe_api_detail(request,pk):
    recipe= get_object_or_404(Recipe.objects.get_published(),pk=pk)
    serializer = RecipeSerializer(
-      instance=recipes,
+      instance=recipe,
       many=False,
       context={'request': request})
    return Response({"detail":"not found"}, status=status.HTTP_404_NOT_FOUND)
