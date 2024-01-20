@@ -108,3 +108,46 @@ class TagSerializer(serializers.ModelSerializer):
 ```
 ### Decoretors api_view
 - No django rest podemos usar um decoretor em nossa view para referênciar essa rota class view. Podemos passar alguns parâmetros como  `@api_view(http_method_names=['GET'])` informando os métodos https suportados.
+
+### Serializer para recebimento de dados.
+- O serializer desempenha um papel crucial, não apenas convertendo nosso objeto de consulta para JSON, mas também realizando o processo inverso ao receber dados via JSON. Existem algumas diferenças nos argumentos entre essas duas operações. Ao enviar dados, utilizamos uma instância, enquanto ao receber, usamos o parâmetro 'data'. Além disso, a função is_valid() é essencial para verificar quais campos são obrigatórios em nosso modelo. 
+```
+@api_view(http_method_names=["get", "post"])
+def recipe_api_list(request):
+    if request.method == "GET":
+        recipes = Recipe.objects.get_published()[:10]
+        serializer = RecipeSerializer(
+            instance=recipes, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+    elif request.method == "POST":
+        serializer = RecipeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+```
+### Validate no Serializer
+- É possível personalizar a validação dos dados por meio da função validate(self, attrs). No arquivo do seu serializador, adicione essa função se desejar usar mais de um argumento para validação. Caso prefira validar de forma individual, é necessário criar uma função no formato validate_nomeatributo(self, value). Dessa maneira, somente o atributo desejado será passado. Ao levantar uma exceção, também é essencial utilizar o erro do serializador, raise serializers.ValidationError(), para que o Django Rest Framework o reconheça como uma requisição inválida (bad request).
+
+```
+    def validate(self, attrs):
+        super_validate = super().validate(attrs)
+        title = attrs.get('title')
+        description = attrs.get('description')
+        if title == description:
+            raise serializers.ValidationError(
+                {
+                    "title": ["Posso", "ter", "mais de um erro"],
+                    "description": ["Posso", "ter", "mais de um erro"],
+                }
+            )
+        return super_validate
+
+    def validate_title(self, value):
+        title = value
+        if len(title) < 5:
+            raise serializers.ValidationError('Must have at least 5 chars.')
+        return title
+```
